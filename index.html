@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,10 +269,6 @@
       margin: 12px 0 6px 0;
       text-align: center;
     }
-.matrix-status-plus { 
-color: #8000ff !important; 
-font-weight: 700; 
-}
     .filter-row {
       margin: 8px 0 12px 0;
       text-align: right;
@@ -487,6 +476,7 @@ font-weight: 700;
 .matrix-status-A { color: #888 !important; font-weight: 700; }
 .matrix-status-X { color: #e40000 !important; font-weight: 700; }
 .matrix-status-R { color: #1dbb75 !important; font-weight: 700; }
+.matrix-status-plus { color: #8000ff !important; font-weight: 700; }
 .matrix-status-PH { color: #e9b200 !important; font-weight: 700; }
   </style>
 </head>
@@ -826,8 +816,8 @@ font-weight: 700;
     <td><input class="status-checkbox" type="checkbox" name="status_a_${idx}" value="A"></td>
     <td><input class="status-checkbox" type="checkbox" name="status_x_${idx}" value="X"></td>
     <td><input class="status-checkbox" type="checkbox" name="status_r_${idx}" value="R"></td>
-    <td><input class="status-checkbox" type="checkbox" name="status_ph_${idx}" value="+"></td>
-    <td><input class="status-checkbox" type="checkbox" name="status_plus_${idx}" value="PH"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_plus_${idx}" value="+"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_ph_${idx}" value="PH"></td>
   </tr>
 `).join('');
     }
@@ -871,7 +861,7 @@ function setMatrixExpected(data) {
         if (document.querySelector(`[name="status_a_${idx}"]`).checked) status = 'A';
         if (document.querySelector(`[name="status_x_${idx}"]`).checked) status = 'X';
         if (document.querySelector(`[name="status_r_${idx}"]`).checked) status = 'R';
-        if (document.querySelector(`[name="status_r_${idx}"]`).checked) status = '+';
+        if (document.querySelector(`[name="status_plus_${idx}"]`).checked) status = '+';
         if (document.querySelector(`[name="status_ph_${idx}"]`).checked) status = 'PH';
         newRecords.push({ date, student, status, remark });
       });
@@ -898,6 +888,7 @@ function setMatrixExpected(data) {
           if (rec.status === 'A') absent++;
           if (rec.status === 'X') missed++;
           if (rec.status === 'R') repl++;
+          if (rec.status === '+') plus++;
           if (rec.status === 'PH') holiday++;
         }
       });
@@ -909,6 +900,7 @@ function setMatrixExpected(data) {
         Absent: <span style="color:#f45151;">${absent}</span> (${pct(absent)}%) &nbsp; 
         Missed: <span style="color:#e9b200;">${missed}</span> (${pct(missed)}%) &nbsp;
         Replacement: <span style="color:#1790f7;">${repl}</span> (${pct(repl)}%) &nbsp;
+        Extra: <span style="color:#8000ff;">${repl}</span> (${pct(repl)}%) &nbsp;
         Public Holiday: <span style="color:#e40000;">${holiday}</span> (${pct(holiday)}%)
         </span>`;
     }
@@ -971,7 +963,7 @@ function renderMatrix() {
   html += '<th class="matrix-status-P">P</th><th class="matrix-status-A">A</th><th class="matrix-status-X">X</th><th class="matrix-status-R">R</th><th class="matrix-status-PH">PH</th><th>Total</th><th>Scheduled Class</th><th>Attended %</th></tr></thead><tbody>';
   shownStudents.forEach((student, rowIdx) => {
     html += `<tr><td class="matrix-student-cell" style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
-    let P=0,A=0,X=0,R=0,PH=0,expected=0;
+    let P=0,A=0,X=0,R=0,+=0,PH=0,expected=0;
 allDates.forEach(date => {
   const v = matrix[student][date] || "";
   let statusClass = "";
@@ -979,6 +971,7 @@ allDates.forEach(date => {
   else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
   else if (v === "X") { statusClass = "matrix-status-X"; X++; }
   else if (v === "R") { statusClass = "matrix-status-R"; R++; }
+  else if (v === "+") { statusClass = "matrix-status-+"; +++; }
   else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
   let plusClass = v === "+" ? " matrix-status-plus" : "";
   html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}${plusClass}">
@@ -988,13 +981,13 @@ allDates.forEach(date => {
       <option value="A"${v==="A"?" selected":""}>A</option>
       <option value="X"${v==="X"?" selected":""}>X</option>
       <option value="R"${v==="R"?" selected":""}>R</option>
-      <option value="PH"${v==="PH"?" selected":""}>PH</option>
       <option value="+"${v==="+"?" selected":""}>+</option>
+      <option value="PH"${v==="PH"?" selected":""}>PH</option>
     </select>
   </td>`;
 });
-    let total = P + A + X + R + PH;
-    html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-PH">${PH}</td>`;
+    let total = P + A + X + R + + + PH;
+    html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-plus">${+}</td><td class="matrix-status-PH">${PH}</td>`;
     html += `<td>${total}</td>`;
     // Use saved expected if available, else fallback to computed expected
     const savedExpected = matrixExpected[student] !== undefined ? matrixExpected[student] : expected;
@@ -1071,9 +1064,9 @@ document.querySelectorAll('.matrix-status-edit').forEach(sel => {
         remarksMap[date] = rem && rem.remark ? rem.remark : "";
       });
       let csv = ["Student," + allDates.map(date=>`${date} (${dateDayMap[date]})`).join(",") +
-        ",P,A,X,R,PH,Expected,Attended %"];
+        ",P,A,X,R,+,PH,Expected,Attended %"];
       students.forEach(student => {
-        let P=0,A=0,X=0,R=0,PH=0,expected=0;
+        let P=0,A=0,X=0,R=0,+=0,PH=0,expected=0;
         let row = [student];
         allDates.forEach(date => {
           const v = matrix[student][date] || "";
@@ -1082,10 +1075,11 @@ document.querySelectorAll('.matrix-status-edit').forEach(sel => {
           else if(v==="A") {A++;expected++;}
           else if(v==="X") {X++;}
           else if(v==="R") {R++;}
+          else if(v==="+") {+++;}
           else if(v==="PH") {PH++;}
         });
         let percent = expected ? ((P/expected)*100).toFixed(0) : '';
-        row.push(P,A,X,R,PH,expected,percent);
+        row.push(P,A,X,R,+,PH,expected,percent);
         csv.push(row.join(","));
       });
       csv.push("Remarks," + allDates.map(date => '"' + (remarksMap[date]||'').replace(/"/g,'""') + '"').join(",") + ',,,,,,,');
