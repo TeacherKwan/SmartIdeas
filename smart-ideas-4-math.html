@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Ideas 4 Math Portal</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <style>
+    :root {
+      --tiffany-blue: #e3f8fa;
+      --matrix-header: #8ed7e6;
+      --tab-active: #1790f7;
+      --tab-inactive: #b6e4ed;
+      --tab-hover: #8ed7e6;
+      --border: #c7e6ec;
+      --header: #1790f7;
+    }
+    body {
+      background: var(--tiffany-blue);
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #192a3e;
+      min-height: 100vh;
+    }
+    .company-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 25px;
+      margin-bottom: 3px;
+      margin-top: 10px;
+    }
+    .company-name {
+      font-size: 1.02rem;
+      color: var(--header);
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      opacity: 0.85;
+    }
+    .portal-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: var(--header);
+      margin: 32px 0 24px 0;
+      letter-spacing: 2px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3px;
+      margin: 0 auto 0 auto;
+      position: static;
+      z-index: 9;
+      max-width: 900px;
+    }
+    .tab-btn {
+      flex: 1 1 150px;
+      min-width: 120px;
+      background: var(--tab-inactive);
+      color: #222;
+      font-size: 1.03rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 9px 9px 0 0;
+      padding: 11px 19px 9px 19px;
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 2px 6px #0001;
+      transition: background 0.18s;
+    }
+    .tab-btn.active {
+      background: var(--tab-active);
+      color: #fff;
+    }
+    .tab-btn:hover:not(.active) {
+      background: var(--tab-hover);
+    }
+    .main-content {
+      background: #ffffffee;
+      border-radius: 18px;
+      box-shadow: 0 6px 30px 0 #0001;
+      margin: 28px auto 42px auto;
+      padding: 28px;
+      max-width: 1170px;
+      min-width: 320px;
+      min-height: 520px;
+      position: relative;
+    }
+    @media (max-width: 900px) {
+      .main-content, .matrix-container { padding: 8px; }
+      .tabs { right: 0; top: 0; }
+      .portal-title { font-size: 1.3rem; }
+      .company-bar { padding-left: 5px; }
+      .company-name { font-size: 0.93rem; }
+    }
+    .section {
+      background: #fafdff;
+      border-radius: 13px;
+      padding: 18px 22px 18px 22px;
+      margin-bottom: 18px;
+      border: 1.5px solid #e6f0f7;
+      margin-top: 18px;
+    }
+    .section-title {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 11px;
+      margin-top: 0;
+    }
+    label, .legend {
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .attendance-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: #e9f5ff;
+      border-radius: 9px 9px 0 0;
+      overflow: hidden;
+      box-shadow: 0 2px 6px #0001;
+    }
+    .attendance-table th, .attendance-table td {
+      padding: 8px 6px;
+      text-align: center;
+      border-bottom: 1.5px solid #d5ecfb;
+    }
+    .attendance-table th {
+      background: #d5ecfb;
+      font-weight: 700;
+      color: #1790f7;
+      font-size: 1.01rem;
+    }
+    .attendance-table tr:last-child td {
+      border-bottom: none;
+    }
+    .attendance-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #1c69a8;
+    }
+    .status-checkbox {
+      accent-color: #1790f7;
+      transform: scale(1.1);
+      cursor: pointer;
+    }
+    .legend {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #444;
+      margin-bottom: 7px;
+      margin-top: 3px;
+    }
+    .remark-box {
+      width: 100%;
+      resize: vertical;
+      min-height: 38px;
+      font-size: 1rem;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1.2px solid #c2e0f8;
+      background: #fafdff;
+      box-sizing: border-box;
+      margin-top: 8px;
+    }
+    .submit-row {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .submit-btn {
+      background: #1790f7;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 28px;
+      font-size: 1.13rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #1790f722;
+      transition: background 0.18s;
+    }
+    .submit-btn:hover {
+      background: #1273c6;
+    }
+    .message {
+      text-align: center;
+      margin-top: 12px;
+      color: #1790f7;
+      font-weight: 600;
+      min-height: 24px;
+    }
+    .attendance-analysis {
+      font-size: 1.08rem;
+      margin: 20px 0 10px 0;
+      color: #2b7a96;
+      font-weight: 600;
+      background: #e9f5ff;
+      padding: 7px 16px;
+      border-radius: 7px;
+      display: inline-block;
+    }
+    .day-of-week {
+      font-size: 1.08rem;
+      font-weight: 500;
+      color: #1790f7;
+      margin-left: 8px;
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #e9f5ff;
+      border-radius: 9px 9px 0 0;
+      overflow: auto;
+      box-shadow: 0 2px 6px #0001;
+      margin-top: 18px;
+      font-size: 0.98rem;
+    }
+    .matrix-table th, .matrix-table td {
+      padding: 8px 6px;
+      text-align: center;
+      border-bottom: 1.5px solid #d5ecfb;
+      border-right: 1.5px solid #d5ecfb;
+      max-width: 60px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .matrix-table th:last-child, .matrix-table td:last-child {
+      border-right: none;
+    }
+    .matrix-table th {
+      background: var(--matrix-header);
+      font-weight: 700;
+      color: #0a5077;
+      font-size: 1.01rem;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .matrix-table td:first-child, .matrix-table th:first-child {
+      position: sticky;
+      left: 0;
+      background: var(--matrix-header);
+      color: #1c69a8;
+      z-index: 1;
+      text-align: left;
+      font-weight: 600;
+      min-width: 160px;
+      max-width: 180px;
+      white-space: normal;
+    }
+    .matrix-table td.remarks-cell {
+      max-width: 180px;
+      white-space: normal;
+      text-align: left;
+      font-size: 0.95rem;
+      color: #333;
+      background: #fafbfc;
+    }
+    .matrix-legend {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #444;
+      margin: 12px 0 6px 0;
+      text-align: center;
+    }
+    .filter-row {
+      margin: 8px 0 12px 0;
+      text-align: right;
+    }
+    .filter-input {
+      font-size: 1rem;
+      padding: 5px 7px;
+      border-radius: 6px;
+      border: 1px solid #b6e4ed;
+      margin-right: 10px;
+      min-width: 140px;
+      background:#fafdff;
+    }
+    .matrix-table .matrix-percent {
+      color: #167c3b;
+      font-weight: 700;
+    }
+    .matrix-table input[type="number"] {
+      width: 55px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: 1px solid #b6e4ed;
+      background: #fafbfc;
+      font-size: 0.98rem;
+      text-align: center;
+    }
+    .tab-section {
+      display: none;
+    }
+    .tab-section.active {
+      display: block;
+      animation: fadein 0.32s;
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .matrix-status-P { color: #1790f7 !important; font-weight: 700; }
+    .matrix-status-A { color: #888 !important; font-weight: 700; }
+    .matrix-status-X { color: #e40000 !important; font-weight: 700; }
+    .matrix-status-R { color: #1dbb75 !important; font-weight: 700; }
+    .matrix-status-PH { color: #e9b200 !important; font-weight: 700; }
+    .matrix-status-plus { color: #8000ff !important; font-weight: 700; } /* Purple for + */
+  </style>
+</head>
+<body>
+  <div class="company-bar">
+    <span class="company-name">Smart Ideas 4 Math</span>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="attendance">Attendance</button>
+    <button class="tab-btn" data-tab="matrix">Attendance Matrix</button>
+  </div>
+  <div class="main-content">
+    <!-- Attendance Tab -->
+    <div class="tab-section active" id="tab-attendance">
+      <div class="portal-title">Student Attendance</div>
+      <form id="attendance-form" autocomplete="off">
+        <div class="section">
+          <div class="section-title">1. Select Date</div>
+          <input type="date" id="date" name="date" required>
+          <span id="day-of-week" class="day-of-week"></span>
+        </div>
+        <div class="section">
+          <div class="section-title">2. Mark Attendance</div>
+          <div class="legend">
+            P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, + = Extra, PH = Public Holiday
+          </div>
+          <table class="attendance-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>P</th>
+                <th>A</th>
+                <th>X</th>
+                <th>R</th>
+                <th>+</th>
+                <th>PH</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+        <div class="section">
+          <div class="section-title">Note / Remark (Optional)</div>
+          <textarea id="remark" name="remark" class="remark-box" placeholder="E.g., Eva left early; Alden will replace tomorrow..."></textarea>
+        </div>
+        <div class="submit-row">
+          <button type="submit" class="submit-btn">Save Attendance</button>
+        </div>
+        <div class="message" id="message"></div>
+      </form>
+      <div id="attendance-analysis"></div>
+    </div>
+    <!-- Attendance Matrix Tab (EDITABLE) -->
+    <div class="tab-section" id="tab-matrix">
+      <div class="portal-title">Attendance Matrix</div>
+      <div class="filter-row">
+        <input type="text" id="matrix-filter" class="filter-input" placeholder="Filter student/class/month...">
+      </div>
+      <div class="matrix-legend">
+        P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, + = Extra, PH = Public Holiday
+      </div>
+      <div id="matrix-table-wrapper" style="overflow:auto;">
+        <form id="matrix-form">
+          <table class="matrix-table" id="matrix-table"></table>
+        </form>
+      </div>
+      <div style="text-align:right;margin-top:12px;">
+        <button class="btn" onclick="exportMatrix()">Export CSV</button>
+      </div>
+      <div id="matrix-message" class="message"></div>
+    </div>
+  </div>
+  <script>
+    // --- Student List ---
+    const students = [
+      "Stenson - J2 KKMS",
+      "Chantelle Lo - J2 KKMS",
+      "Moses - J2 KKMS",
+      "Jeremiah - J2 KKMS",
+      "Ang Yi Yang - J2 TTSS",
+      "Charles Wong - J2 TTSS",
+      "Kelsey - J2 TTSS",
+      "Chloe Tay - J2 TTSS",
+      "Liew Xin Yi - J2 TTSS",
+      "Bryan Boon - J2 TTSS",
+      "Voon Neng - J2 TTSS",
+      "Eva - S2 KKMS",
+      "Mindy - S2 KKMS",
+      "Lily - S2 TTSS",
+      "Jeremy Sii - F4 KKHS",
+      "Aaron - F4 KKHS",
+      "Yap Xian Hui - F5 KKHS",
+      "Rayyan - J3 KKMS",
+      "Wong Jia Heng - J3 KKMS",
+      "Charleston - J3 KKMS",
+      "Marcos - J3 KKMS",
+      "Jason - J3 KKMS",
+      "Rachel - J3 KKMS",
+      "Jake - J3 KKMS",
+      "Jibran - J3 KKMS",
+      "LZP - J3 KKMS",
+      "Alden - J3 KKMS",
+      "Chloe Voo - J3 KKMS",
+      "Abby - J3 KKMS",
+      "Lyyn - Y7 KIS"
+    ];
+    function getClassFromStudent(s) {
+      let parts = s.split("-");
+      return parts.length > 1 ? parts[1].trim() : '';
+    }
+
+    // ---- Attendance Section ----
+    function renderAttendanceTable() {
+      const tbody = document.getElementById('student-tbody');
+      tbody.innerHTML = students.map((student, idx) => `
+        <tr>
+          <td>${student}</td>
+          <td><input class="status-checkbox" type="checkbox" name="status_p_${idx}" value="P"></td>
+          <td><input class="status-checkbox" type="checkbox" name="status_a_${idx}" value="A"></td>
+          <td><input class="status-checkbox" type="checkbox" name="status_x_${idx}" value="X"></td>
+          <td><input class="status-checkbox" type="checkbox" name="status_r_${idx}" value="R"></td>
+          <td><input class="status-checkbox" type="checkbox" name="status_plus_${idx}" value="+"></td>
+          <td><input class="status-checkbox" type="checkbox" name="status_ph_${idx}" value="PH"></td>
+        </tr>
+      `).join('');
+    }
+    renderAttendanceTable();
+
+    function getAttendance() {
+      return JSON.parse(localStorage.getItem('attendance') || '[]');
+    }
+    function setAttendance(data) {
+      localStorage.setItem('attendance', JSON.stringify(data));
+    }
+    function updateDayOfWeek() {
+      const dateInput = document.getElementById('date');
+      const dayOfWeekSpan = document.getElementById('day-of-week');
+      if (dateInput.value) {
+        const date = new Date(dateInput.value + 'T00:00:00');
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        dayOfWeekSpan.textContent = days[date.getDay()];
+      } else {
+        dayOfWeekSpan.textContent = '';
+      }
+    }
+    document.getElementById('date').addEventListener('input', updateDayOfWeek);
+
+    document.getElementById('attendance-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const date = document.getElementById('date').value;
+      const remark = document.getElementById('remark').value.trim();
+      if (!date) return;
+      const attendance = getAttendance();
+      const newRecords = [];
+      students.forEach((student, idx) => {
+        let status = '';
+        if (document.querySelector(`[name="status_plus_${idx}"]`).checked) status = '+';
+        if (document.querySelector(`[name="status_p_${idx}"]`).checked) status = 'P';
+        if (document.querySelector(`[name="status_a_${idx}"]`).checked) status = 'A';
+        if (document.querySelector(`[name="status_x_${idx}"]`).checked) status = 'X';
+        if (document.querySelector(`[name="status_r_${idx}"]`).checked) status = 'R';
+        if (document.querySelector(`[name="status_ph_${idx}"]`).checked) status = 'PH';
+        newRecords.push({ date, student, status, remark });
+      });
+      const filtered = attendance.filter(r => r.date !== date || !students.includes(r.student));
+      const updated = filtered.concat(newRecords);
+      setAttendance(updated);
+      document.getElementById('message').textContent = 'Attendance saved!';
+      setTimeout(() => { document.getElementById('message').textContent = ""; }, 2000);
+      this.reset();
+      updateDayOfWeek();
+      renderAttendanceAnalysis();
+      renderMatrix();
+    });
+
+    function renderAttendanceAnalysis() {
+      const attendance = getAttendance();
+      const date = document.getElementById('date').value;
+      if (!date) { document.getElementById('attendance-analysis').innerHTML = ""; return; }
+      let total = 0, present = 0, absent = 0, missed = 0, repl = 0, extra = 0, holiday = 0;
+      students.forEach(student => {
+        const rec = attendance.find(r => r.date === date && r.student === student);
+        if (rec && rec.status) {
+          total++;
+          if (rec.status === 'P') present++;
+          if (rec.status === 'A') absent++;
+          if (rec.status === 'X') missed++;
+          if (rec.status === 'R') repl++;
+          if (rec.status === '+') extra++;
+          if (rec.status === 'PH') holiday++;
+        }
+      });
+      if (total === 0) { document.getElementById('attendance-analysis').innerHTML = ""; return; }
+      const pct = n => total ? ((n / total * 100).toFixed(0)) : 0;
+      document.getElementById('attendance-analysis').innerHTML =
+        `<span class="attendance-analysis">
+        Present: <span style="color:#1dbb75;">${present}</span> (${pct(present)}%) &nbsp; 
+        Absent: <span style="color:#f45151;">${absent}</span> (${pct(absent)}%) &nbsp; 
+        Missed: <span style="color:#e9b200;">${missed}</span> (${pct(missed)}%) &nbsp;
+        Replacement: <span style="color:#1790f7;">${repl}</span> (${pct(repl)}%) &nbsp;
+        Extra: <span style="color:#8000ff;">${extra}</span> (${pct(extra)}%) &nbsp;
+        Public Holiday: <span style="color:#e40000;">${holiday}</span> (${pct(holiday)}%)
+        </span>`;
+    }
+    document.getElementById('date').addEventListener('input', renderAttendanceAnalysis);
+
+    window.onload = function() {
+      document.getElementById('date').value = new Date().toISOString().slice(0,10);
+      updateDayOfWeek();
+      renderAttendanceAnalysis();
+      renderMatrix();
+    };
+
+    // -------- Matrix Logic -----------
+    function renderMatrix() {
+      const attendance = getAttendance();
+      const filter = document.getElementById('matrix-filter').value.toLowerCase();
+      const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => a.localeCompare(b));
+      const dateDayMap = {};
+      allDates.forEach(date => {
+        const d = new Date(date + 'T00:00:00');
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        dateDayMap[date] = days[d.getDay()];
+      });
+      const matrix = {};
+      students.forEach(s => matrix[s] = {});
+      attendance.forEach(r => {
+        if (matrix[r.student]) {
+          matrix[r.student][r.date] = r.status || "";
+        }
+      });
+      const remarksMap = {};
+      allDates.forEach(date => {
+        const rem = attendance.find(r => r.date === date && r.remark);
+        remarksMap[date] = rem && rem.remark ? rem.remark : "";
+      });
+      let shownStudents = students;
+      if (filter) {
+        shownStudents = students.filter(stu =>
+          stu.toLowerCase().includes(filter) ||
+          getClassFromStudent(stu).toLowerCase().includes(filter)
+        );
+      }
+      let html = '<thead><tr><th>Student</th>';
+      allDates.forEach(date => {
+        html += `<th class="matrix-date">${date}<br>${dateDayMap[date]}</th>`;
+      });
+      html += '<th class="matrix-status-P">P</th><th class="matrix-status-A">A</th><th class="matrix-status-X">X</th><th class="matrix-status-R">R</th><th class="matrix-status-plus">+</th><th class="matrix-status-PH">PH</th><th>Total</th></tr></thead><tbody>';
+      shownStudents.forEach((student, rowIdx) => {
+        html += `<tr><td style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
+        let P=0,A=0,X=0,R=0,PH=0,PLUS=0,expected=0;
+        allDates.forEach(date => {
+          const v = matrix[student][date] || "";
+          let statusClass = "";
+          if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
+          else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
+          else if (v === "X") { statusClass = "matrix-status-X"; X++; }
+          else if (v === "R") { statusClass = "matrix-status-R"; R++; }
+          else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
+          else if (v === "+") { statusClass = "matrix-status-plus"; PLUS++; }
+          let plusClass = v === "+" ? " matrix-status-plus" : "";
+          html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}${plusClass}">
+            <select class="matrix-status-edit" data-student="${encodeURIComponent(student)}" data-date="${date}" style="font-size:1rem;">
+              <option value=""></option>
+              <option value="P"${v==="P"?" selected":""}>P</option>
+              <option value="A"${v==="A"?" selected":""}>A</option>
+              <option value="X"${v==="X"?" selected":""}>X</option>
+              <option value="R"${v==="R"?" selected":""}>R</option>
+              <option value="+"${v==="+"?" selected":""}>+</option>
+              <option value="PH"${v==="PH"?" selected":""}>PH</option>
+            </select>
+          </td>`;
+        });
+        let total = P + A + X + R + PH + PLUS;
+        html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-plus">${PLUS}</td><td class="matrix-status-PH">${PH}</td>`;
+        html += `<td>${total}</td>`;
+        html += '</tr>';
+      });
+      html += `<tr><td class="remarks-cell"><b>Remarks</b></td>`;
+      allDates.forEach(date => {
+        html += `<td class="remarks-cell matrix-date">${remarksMap[date] ? remarksMap[date] : ''}</td>`;
+      });
+      html += '<td colspan="7"></td></tr>';
+      html += '</tbody>';
+      document.getElementById('matrix-table').innerHTML = html;
+      document.querySelectorAll('.matrix-status-edit').forEach(sel => {
+        sel.onchange = function() {
+          const student = decodeURIComponent(this.getAttribute('data-student'));
+          const date = this.getAttribute('data-date');
+          const status = this.value;
+          let attendance = getAttendance();
+          let rec = attendance.find(r => r.student === student && r.date === date);
+          if (rec) {
+            rec.status = status;
+          } else {
+            attendance.push({ student, date, status, remark: '' });
+          }
+          setAttendance(attendance);
+          renderMatrix();
+        }
+      });
+    }
+    document.getElementById('matrix-filter').addEventListener('input', renderMatrix);
+
+    function exportMatrix() {
+      const attendance = getAttendance();
+      const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => b.localeCompare(a));
+      const dateDayMap = {};
+      allDates.forEach(date => {
+        const d = new Date(date + 'T00:00:00');
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        dateDayMap[date] = days[d.getDay()];
+      });
+      const matrix = {};
+      students.forEach(s => matrix[s] = {});
+      attendance.forEach(r => {
+        if (matrix[r.student]) {
+          matrix[r.student][r.date] = r.status || "";
+        }
+      });
+      const remarksMap = {};
+      allDates.forEach(date => {
+        const rem = attendance.find(r => r.date === date && r.remark);
+        remarksMap[date] = rem && rem.remark ? rem.remark : "";
+      });
+      let csv = ["Student," + allDates.map(date=>`${date} (${dateDayMap[date]})`).join(",") +
+        ",P,A,X,R,+,PH,Total"];
+      students.forEach(student => {
+        let P=0,A=0,X=0,R=0,PLUS=0,PH=0;
+        let row = [student];
+        allDates.forEach(date => {
+          const v = matrix[student][date] || "";
+          row.push(v);
+          if(v==="P") {P++;}
+          else if(v==="A") {A++;}
+          else if(v==="X") {X++;}
+          else if(v==="R") {R++;}
+          else if(v==="+") {PLUS++;}
+          else if(v==="PH") {PH++;}
+        });
+        let total = P + A + X + R + PLUS + PH;
+        row.push(P,A,X,R,PLUS,PH,total);
+        csv.push(row.join(","));
+      });
+      csv.push("Remarks," + allDates.map(date => '"' + (remarksMap[date]||'').replace(/"/g,'""') + '"').join(",") + ',,,,,,,');
+      const blob = new Blob([csv.join("\r\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "attendance_matrix.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    window.exportMatrix = exportMatrix;
+
+    // --- Tab Navigation ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick = function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        if(btn.dataset.tab === "matrix") renderMatrix();
+        if(btn.dataset.tab === "attendance") renderAttendanceAnalysis();
+      }
+    });
+  </script>
+</body>
+</html>
