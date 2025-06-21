@@ -965,7 +965,7 @@ function renderMatrix() {
   shownStudents.forEach((student, rowIdx) => {
     html += `<tr><td class="matrix-student-cell" style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
     let P=0,A=0,X=0,R=0,PH=0,expected=0;
-    allDates.forEach(date => {
+allDates.forEach(date => {
   const v = matrix[student][date] || "";
   let statusClass = "";
   if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
@@ -973,8 +973,8 @@ function renderMatrix() {
   else if (v === "X") { statusClass = "matrix-status-X"; X++; }
   else if (v === "R") { statusClass = "matrix-status-R"; R++; }
   else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
-  // Dropdown version:
-  html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}">
+  let plusClass = v === "+" ? " matrix-status-plus" : "";
+  html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}${plusClass}">
     <select class="matrix-status-edit" data-student="${encodeURIComponent(student)}" data-date="${date}" style="font-size:1rem;">
       <option value=""></option>
       <option value="P"${v==="P"?" selected":""}>P</option>
@@ -982,6 +982,7 @@ function renderMatrix() {
       <option value="X"${v==="X"?" selected":""}>X</option>
       <option value="R"${v==="R"?" selected":""}>R</option>
       <option value="PH"${v==="PH"?" selected":""}>PH</option>
+      <option value="+"${v==="+"?" selected":""}>+</option>
     </select>
   </td>`;
 });
