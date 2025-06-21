@@ -833,6 +833,12 @@
     function setAttendance(data) {
       localStorage.setItem('attendance', JSON.stringify(data));
     }
+function getMatrixExpected() {
+  return JSON.parse(localStorage.getItem('matrixExpected') || '{}');
+}
+function setMatrixExpected(data) {
+  localStorage.setItem('matrixExpected', JSON.stringify(data));
+}
     function updateDayOfWeek() {
       const dateInput = document.getElementById('date');
       const dayOfWeekSpan = document.getElementById('day-of-week');
@@ -917,79 +923,94 @@
     };
 
     // -------- Matrix Logic -----------
- function renderMatrix() {
-    const attendance = getAttendance();
-    const filter = document.getElementById('matrix-filter').value.toLowerCase();
-    const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => a.localeCompare(b));
-    const dateDayMap = {};
-    allDates.forEach(date => {
-      const d = new Date(date + 'T00:00:00');
-      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      dateDayMap[date] = days[d.getDay()];
-    });
-    const matrix = {};
-    students.forEach(s => matrix[s] = {});
-    attendance.forEach(r => {
-      if (matrix[r.student]) {
-        matrix[r.student][r.date] = r.status || "";
-      }
-    });
-    const remarksMap = {};
-    allDates.forEach(date => {
-      const rem = attendance.find(r => r.date === date && r.remark);
-      remarksMap[date] = rem && rem.remark ? rem.remark : "";
-    });
-    let shownStudents = students;
-    if (filter) {
-      shownStudents = students.filter(stu =>
-        stu.toLowerCase().includes(filter) ||
-        getClassFromStudent(stu).toLowerCase().includes(filter)
-      );
+function renderMatrix() {
+  const attendance = getAttendance();
+  const filter = document.getElementById('matrix-filter').value.toLowerCase();
+  const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => a.localeCompare(b));
+  const dateDayMap = {};
+  allDates.forEach(date => {
+    const d = new Date(date + 'T00:00:00');
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    dateDayMap[date] = days[d.getDay()];
+  });
+  const matrix = {};
+  students.forEach(s => matrix[s] = {});
+  attendance.forEach(r => {
+    if (matrix[r.student]) {
+      matrix[r.student][r.date] = r.status || "";
     }
-    let html = '<thead><tr><th>Student</th>';
-    allDates.forEach(date => {
-      html += `<th class="matrix-date">${date}<br>${dateDayMap[date]}</th>`;
-    });
-    html += '<th class="matrix-status-P">P</th><th class="matrix-status-A">A</th><th class="matrix-status-X">X</th><th class="matrix-status-R">R</th><th class="matrix-status-PH">PH</th><th>Total</th><th>Scheduled Class</th><th>Attended %</th></tr></thead><tbody>';
-    shownStudents.forEach((student, rowIdx) => {
-      html += `<tr><td style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
-      let P=0,A=0,X=0,R=0,PH=0,expected=0;
-      allDates.forEach(date => {
-        const v = matrix[student][date] || "";
-        let statusClass = "";
-        if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
-        else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
-        else if (v === "X") { statusClass = "matrix-status-X"; X++; }
-        else if (v === "R") { statusClass = "matrix-status-R"; R++; }
-        else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
-        html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}">${v}</td>`;
-      });
-      let total = P + A + X + R + PH;
-html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-PH">${PH}</td>`;
-html += `<td>${total}</td>`;
-html += `<td><input type="number" min="0" value="${expected}" data-row="${rowIdx}" class="matrix-expected" style="width:50px;"></td>`;
-let percent = expected ? (((P + R)/expected)*100).toFixed(0) : '';
-html += `<td class="matrix-percent">${percent}</td>`;
-      html += '</tr>';
-    });
-    html += `<tr><td class="remarks-cell"><b>Remarks</b></td>`;
-    allDates.forEach(date => {
-      html += `<td class="remarks-cell matrix-date">${remarksMap[date] ? remarksMap[date] : ''}</td>`;
-    });
-    html += '<td colspan="7"></td></tr>';
-    html += '</tbody>';
-    document.getElementById('matrix-table').innerHTML = html;
-    document.querySelectorAll('.matrix-expected').forEach(inp => {
-      inp.onchange = function() {
-        let rowIdx = +this.getAttribute('data-row');
-        let row = this.closest('tr');
-        let P = +row.children[allDates.length+1].textContent;
-        let expected = +this.value || 0;
-        let pct = expected ? ((P/expected)*100).toFixed(0) : '';
-        row.children[allDates.length+8].textContent = pct;
-      }
-    });
+  });
+  const remarksMap = {};
+  allDates.forEach(date => {
+    const rem = attendance.find(r => r.date === date && r.remark);
+    remarksMap[date] = rem && rem.remark ? rem.remark : "";
+  });
+
+  let shownStudents = students;
+  if (filter) {
+    shownStudents = students.filter(stu =>
+      stu.toLowerCase().includes(filter) ||
+      getClassFromStudent(stu).toLowerCase().includes(filter)
+    );
   }
+
+  // Load expected (Scheduled Class) per student from localStorage
+  const matrixExpected = getMatrixExpected();
+
+  let html = '<thead><tr><th>Student</th>';
+  allDates.forEach(date => {
+    html += `<th class="matrix-date">${date}<br>${dateDayMap[date]}</th>`;
+  });
+  html += '<th class="matrix-status-P">P</th><th class="matrix-status-A">A</th><th class="matrix-status-X">X</th><th class="matrix-status-R">R</th><th class="matrix-status-PH">PH</th><th>Total</th><th>Scheduled Class</th><th>Attended %</th></tr></thead><tbody>';
+  shownStudents.forEach((student, rowIdx) => {
+    html += `<tr><td class="matrix-student-cell" style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
+    let P=0,A=0,X=0,R=0,PH=0,expected=0;
+    allDates.forEach(date => {
+      const v = matrix[student][date] || "";
+      let statusClass = "";
+      if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
+      else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
+      else if (v === "X") { statusClass = "matrix-status-X"; X++; }
+      else if (v === "R") { statusClass = "matrix-status-R"; R++; }
+      else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
+      html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}">${v}</td>`;
+    });
+    let total = P + A + X + R + PH;
+    html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-PH">${PH}</td>`;
+    html += `<td>${total}</td>`;
+    // Use saved expected if available, else fallback to computed expected
+    const savedExpected = matrixExpected[student] !== undefined ? matrixExpected[student] : expected;
+    html += `<td><input type="number" min="0" value="${savedExpected}" data-row="${rowIdx}" class="matrix-expected" data-student="${encodeURIComponent(student)}" style="width:50px;"></td>`;
+    let percent = savedExpected ? (((P + R)/savedExpected)*100).toFixed(0) : '';
+    html += `<td class="matrix-percent">${percent}</td>`;
+    html += '</tr>';
+  });
+  html += `<tr><td class="remarks-cell"><b>Remarks</b></td>`;
+  allDates.forEach(date => {
+    html += `<td class="remarks-cell matrix-date">${remarksMap[date] ? remarksMap[date] : ''}</td>`;
+  });
+  html += '<td colspan="7"></td></tr>';
+  html += '</tbody>';
+  document.getElementById('matrix-table').innerHTML = html;
+
+  // Save expected value per student on change
+  document.querySelectorAll('.matrix-expected').forEach(inp => {
+    inp.onchange = function() {
+      let rowIdx = +this.getAttribute('data-row');
+      let row = this.closest('tr');
+      let student = decodeURIComponent(this.getAttribute('data-student'));
+      let P = +row.children[allDates.length+1].textContent;
+      let R = +row.children[allDates.length+4].textContent;
+      let expected = +this.value || 0;
+      let pct = expected ? (((P + R)/expected)*100).toFixed(0) : '';
+      row.children[allDates.length+8].textContent = pct;
+      // Save to localStorage
+      const matrixExpected = getMatrixExpected();
+      matrixExpected[student] = expected;
+      setMatrixExpected(matrixExpected);
+    }
+  });
+}
     document.getElementById('matrix-filter').addEventListener('input', renderMatrix);
     function exportMatrix() {
       const attendance = getAttendance();
@@ -1507,6 +1528,61 @@ html += `<td class="matrix-percent">${percent}</td>`;
         if(btn.dataset.tab === "feedback") renderFeedbackList();
       }
     });
+(function() {
+  // Create tooltip element
+  const tooltip = document.createElement('div');
+  tooltip.style.position = 'fixed';
+  tooltip.style.pointerEvents = 'none';
+  tooltip.style.background = '#fff';
+  tooltip.style.border = '1.5px solid #1790f7';
+  tooltip.style.borderRadius = '6px';
+  tooltip.style.boxShadow = '0 2px 12px #0002';
+  tooltip.style.padding = '7px 13px';
+  tooltip.style.fontSize = '1rem';
+  tooltip.style.color = '#1790f7';
+  tooltip.style.zIndex = 99999;
+  tooltip.style.whiteSpace = 'pre-line';
+  tooltip.style.display = 'none';
+  document.body.appendChild(tooltip);
+
+  function showTooltip(text, x, y) {
+    tooltip.textContent = text;
+    tooltip.style.display = 'block';
+    // keep within viewport
+    const pad = 14;
+    let left = x + pad, top = y + pad;
+    if (left + tooltip.offsetWidth > window.innerWidth) left = x - tooltip.offsetWidth - pad;
+    if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - pad;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
+  function hideTooltip() { tooltip.style.display = 'none'; }
+  // Delegate hover on matrix-table
+  document.addEventListener('mouseover', function(e) {
+    // Header (first row)
+    if (e.target.closest('.matrix-table th.matrix-date')) {
+      const text = e.target.textContent.trim();
+      if (e.target.offsetWidth < e.target.scrollWidth) {
+        showTooltip(text, e.clientX, e.clientY);
+      }
+    }
+    // Student name (first column)
+    if (e.target.closest('.matrix-table td.matrix-student-cell')) {
+      const text = e.target.textContent.trim();
+      if (e.target.offsetWidth < e.target.scrollWidth) {
+        showTooltip(text, e.clientX, e.clientY);
+      }
+    }
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (tooltip.style.display === 'block')
+      showTooltip(tooltip.textContent, e.clientX, e.clientY);
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (e.target.closest('.matrix-table th.matrix-date') || e.target.closest('.matrix-table td.matrix-student-cell'))
+      hideTooltip();
+  });
+})();
   </script>
 </body>
 </html>
