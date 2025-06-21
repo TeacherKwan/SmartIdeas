@@ -276,6 +276,10 @@
       margin: 12px 0 6px 0;
       text-align: center;
     }
+.matrix-status-plus { 
+color: #8000ff !important; 
+font-weight: 700; 
+}
     .filter-row {
       margin: 8px 0 12px 0;
       text-align: right;
@@ -514,7 +518,7 @@
         <div class="section">
           <div class="section-title">2. Mark Attendance</div>
           <div class="legend">
-            P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, PH = Public Holiday
+            P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, + = Extra, PH = Public Holiday
           </div>
           <table class="attendance-table">
             <thead>
@@ -524,6 +528,7 @@
                 <th>A</th>
                 <th>X</th>
                 <th>R</th>
+                <th>+</th>
                 <th>PH</th>
               </tr>
             </thead>
@@ -548,7 +553,7 @@
         <input type="text" id="matrix-filter" class="filter-input" placeholder="Filter student/class/month...">
       </div>
       <div class="matrix-legend">
-        P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, PH = Public Holiday
+        P = Present, A = Absent, X = Missed/Need Replace, R = Replacement, + = Extra, PH = Public Holiday
       </div>
       <div id="matrix-table-wrapper" style="overflow:auto;">
         <form id="matrix-form">
@@ -815,15 +820,16 @@
     function renderAttendanceTable() {
       const tbody = document.getElementById('student-tbody');
       tbody.innerHTML = students.map((student, idx) => `
-        <tr>
-          <td>${student}</td>
-          <td><input class="status-checkbox" type="checkbox" name="status_p_${idx}" value="P"></td>
-          <td><input class="status-checkbox" type="checkbox" name="status_a_${idx}" value="A"></td>
-          <td><input class="status-checkbox" type="checkbox" name="status_x_${idx}" value="X"></td>
-          <td><input class="status-checkbox" type="checkbox" name="status_r_${idx}" value="R"></td>
-          <td><input class="status-checkbox" type="checkbox" name="status_ph_${idx}" value="PH"></td>
-        </tr>
-      `).join('');
+  <tr>
+    <td>${student}</td>
+    <td><input class="status-checkbox" type="checkbox" name="status_p_${idx}" value="P"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_a_${idx}" value="A"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_x_${idx}" value="X"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_r_${idx}" value="R"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_ph_${idx}" value="+"></td>
+    <td><input class="status-checkbox" type="checkbox" name="status_plus_${idx}" value="PH"></td>
+  </tr>
+`).join('');
     }
     renderAttendanceTable();
 
@@ -865,6 +871,7 @@ function setMatrixExpected(data) {
         if (document.querySelector(`[name="status_a_${idx}"]`).checked) status = 'A';
         if (document.querySelector(`[name="status_x_${idx}"]`).checked) status = 'X';
         if (document.querySelector(`[name="status_r_${idx}"]`).checked) status = 'R';
+        if (document.querySelector(`[name="status_r_${idx}"]`).checked) status = '+';
         if (document.querySelector(`[name="status_ph_${idx}"]`).checked) status = 'PH';
         newRecords.push({ date, student, status, remark });
       });
