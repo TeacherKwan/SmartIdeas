@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -280,6 +272,16 @@
 .matrix-status-plus { 
 color: #8000ff !important; 
 font-weight: 700; 
+}
+.matrix-table select.matrix-status-select {
+  width: 42px;
+  font-size: 0.99rem;
+  border-radius: 6px;
+  border: 1px solid #b6e4ed;
+  background: #fafbfc;
+  color: #111;
+  text-align: center;
+  padding: 1px 0px;
 }
     .filter-row {
       margin: 8px 0 12px 0;
@@ -931,14 +933,24 @@ function setMatrixExpected(data) {
     };
 
     // -------- Matrix Logic -----------
+// Place this function instead of your old renderMatrix()
 function renderMatrix() {
+  const statusOptions = [
+    { v: "", label: "" },
+    { v: "P", label: "P" },
+    { v: "A", label: "A" },
+    { v: "X", label: "X" },
+    { v: "R", label: "R" },
+    { v: "+", label: "+" },
+    { v: "PH", label: "PH" }
+  ];
   const attendance = getAttendance();
   const filter = document.getElementById('matrix-filter').value.toLowerCase();
-  const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => a.localeCompare(b));
+  const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a, b) => a.localeCompare(b));
   const dateDayMap = {};
   allDates.forEach(date => {
     const d = new Date(date + 'T00:00:00');
-    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dateDayMap[date] = days[d.getDay()];
   });
   const matrix = {};
@@ -953,7 +965,6 @@ function renderMatrix() {
     const rem = attendance.find(r => r.date === date && r.remark);
     remarksMap[date] = rem && rem.remark ? rem.remark : "";
   });
-
   let shownStudents = students;
   if (filter) {
     shownStudents = students.filter(stu =>
@@ -961,95 +972,98 @@ function renderMatrix() {
       getClassFromStudent(stu).toLowerCase().includes(filter)
     );
   }
-
-  // Load expected (Scheduled Class) per student from localStorage
-  const matrixExpected = getMatrixExpected();
-
   let html = '<thead><tr><th>Student</th>';
   allDates.forEach(date => {
     html += `<th class="matrix-date">${date}<br>${dateDayMap[date]}</th>`;
   });
-  html += '<th class="matrix-status-P">P</th><th class="matrix-status-A">A</th><th class="matrix-status-X">X</th><th class="matrix-status-R">R</th><th class="matrix-status-PH">PH</th><th>Total</th><th>Scheduled Class</th><th>Attended %</th></tr></thead><tbody>';
+  html += '<th class="matrix-status-P">P</th>' +
+    '<th class="matrix-status-A">A</th>' +
+    '<th class="matrix-status-X">X</th>' +
+    '<th class="matrix-status-R">R</th>' +
+    '<th style="color:#e9b200;font-weight:bold;">+</th>' +
+    '<th class="matrix-status-PH">PH</th>' +
+    '<th>Total</th>' +
+    '<th>Scheduled Class</th>' +
+    '<th>Attended %</th></tr></thead><tbody>';
+
   shownStudents.forEach((student, rowIdx) => {
-    html += `<tr><td class="matrix-student-cell" style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
-    let P=0,A=0,X=0,R=0,PH=0,expected=0;
-allDates.forEach(date => {
-  const v = matrix[student][date] || "";
-  let statusClass = "";
-  if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
-  else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
-  else if (v === "X") { statusClass = "matrix-status-X"; X++; }
-  else if (v === "R") { statusClass = "matrix-status-R"; R++; }
-  else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
-  let plusClass = v === "+" ? " matrix-status-plus" : "";
-  html += `<td class="matrix-date${statusClass ? ' '+statusClass : ''}${plusClass}">
-    <select class="matrix-status-edit" data-student="${encodeURIComponent(student)}" data-date="${date}" style="font-size:1rem;">
-      <option value=""></option>
-      <option value="P"${v==="P"?" selected":""}>P</option>
-      <option value="A"${v==="A"?" selected":""}>A</option>
-      <option value="X"${v==="X"?" selected":""}>X</option>
-      <option value="R"${v==="R"?" selected":""}>R</option>
-      <option value="PH"${v==="PH"?" selected":""}>PH</option>
-      <option value="+"${v==="+"?" selected":""}>+</option>
-    </select>
-  </td>`;
-});
+    html += `<tr><td style="background:var(--matrix-header);color:#0a5077;">${student}</td>`;
+    let P = 0, A = 0, X = 0, R = 0, PH = 0, expected = 0;
+    allDates.forEach((date, colIdx) => {
+      const v = matrix[student][date] || "";
+      let statusClass = "";
+      if (v === "P") { statusClass = "matrix-status-P"; P++; expected++; }
+      else if (v === "A") { statusClass = "matrix-status-A"; A++; expected++; }
+      else if (v === "X") { statusClass = "matrix-status-X"; X++; }
+      else if (v === "R") { statusClass = "matrix-status-R"; R++; expected++; }
+      else if (v === "+") { statusClass = "matrix-status-plus"; }
+      else if (v === "PH") { statusClass = "matrix-status-PH"; PH++; }
+      html += `<td class="matrix-date${statusClass ? ' ' + statusClass : ''}">
+        <select class="matrix-status-select"
+          data-student="${student.replace(/"/g,'&quot;')}"
+          data-date="${date}"
+          style="text-align:center;">
+          ${statusOptions.map(opt =>
+            `<option value="${opt.v}"${v === opt.v ? " selected" : ""}>${opt.label}</option>`
+          ).join('')}
+        </select>
+      </td>`;
+    });
     let total = P + A + X + R + PH;
-    html += `<td class="matrix-status-P">${P}</td><td class="matrix-status-A">${A}</td><td class="matrix-status-X">${X}</td><td class="matrix-status-R">${R}</td><td class="matrix-status-PH">${PH}</td>`;
-    html += `<td>${total}</td>`;
-    // Use saved expected if available, else fallback to computed expected
-    const savedExpected = matrixExpected[student] !== undefined ? matrixExpected[student] : expected;
-    html += `<td><input type="number" min="0" value="${savedExpected}" data-row="${rowIdx}" class="matrix-expected" data-student="${encodeURIComponent(student)}" style="width:50px;"></td>`;
-    let percent = savedExpected ? (((P + R)/savedExpected)*100).toFixed(0) : '';
+    let plus = R;
+    html += `<td class="matrix-status-P">${P}</td>
+      <td class="matrix-status-A">${A}</td>
+      <td class="matrix-status-X">${X}</td>
+      <td class="matrix-status-R">${R}</td>
+      <td class="matrix-status-plus">${plus}</td>
+      <td class="matrix-status-PH">${PH}</td>
+      <td>${total}</td>
+      <td><input type="number" min="0" value="${expected}" data-row="${rowIdx}" class="matrix-expected" style="width:50px;"></td>`;
+    let percent = expected ? (((P + R) / expected) * 100).toFixed(0) : '';
     html += `<td class="matrix-percent">${percent}</td>`;
     html += '</tr>';
   });
+
   html += `<tr><td class="remarks-cell"><b>Remarks</b></td>`;
   allDates.forEach(date => {
     html += `<td class="remarks-cell matrix-date">${remarksMap[date] ? remarksMap[date] : ''}</td>`;
   });
-  html += '<td colspan="7"></td></tr>';
+  html += '<td colspan="9"></td></tr>';
   html += '</tbody>';
   document.getElementById('matrix-table').innerHTML = html;
-document.querySelectorAll('.matrix-status-edit').forEach(sel => {
-  sel.onchange = function() {
-    const student = decodeURIComponent(this.getAttribute('data-student'));
-    const date = this.getAttribute('data-date');
-    const status = this.value;
 
-    // Update attendance data
-    let attendance = getAttendance();
-    let rec = attendance.find(r => r.student === student && r.date === date);
-    if (rec) {
-      rec.status = status;
-    } else {
-      attendance.push({ student, date, status, remark: '' });
-    }
-    setAttendance(attendance);
-
-    // Re-render matrix to update colors, stats, etc.
-    renderMatrix();
-  }
-});
-  // Save expected value per student on change
-  document.querySelectorAll('.matrix-expected').forEach(inp => {
-    inp.onchange = function() {
-      let rowIdx = +this.getAttribute('data-row');
-      let row = this.closest('tr');
-      let student = decodeURIComponent(this.getAttribute('data-student'));
-      let P = +row.children[allDates.length+1].textContent;
-      let R = +row.children[allDates.length+4].textContent;
-      let expected = +this.value || 0;
-      let pct = expected ? (((P + R)/expected)*100).toFixed(0) : '';
-      row.children[allDates.length+8].textContent = pct;
-      // Save to localStorage
-      const matrixExpected = getMatrixExpected();
-      matrixExpected[student] = expected;
-      setMatrixExpected(matrixExpected);
+  // Event: update attendance record when dropdown changes
+  document.querySelectorAll('.matrix-status-select').forEach(sel => {
+    sel.onchange = function() {
+      const student = this.getAttribute('data-student');
+      const date = this.getAttribute('data-date');
+      const status = this.value;
+      let att = getAttendance();
+      let idx = att.findIndex(r => r.student === student && r.date === date);
+      if (idx >= 0) {
+        att[idx].status = status;
+      } else {
+        att.push({ student, date, status });
+      }
+      setAttendance(att);
+      renderMatrix();
     }
   });
-}
-    document.getElementById('matrix-filter').addEventListener('input', renderMatrix);
+
+  // Event: when the expected (scheduled) class input changes, recalculate attended %
+  document.querySelectorAll('.matrix-expected').forEach(inp => {
+    inp.onchange = function () {
+      let rowIdx = +this.getAttribute('data-row');
+      let row = this.closest('tr');
+      let P = +row.children[allDates.length + 1].textContent;
+      let R = +row.children[allDates.length + 4].textContent;
+      let expected = +this.value || 0;
+      let pct = expected ? (((P + R) / expected) * 100).toFixed(0) : '';
+      row.children[allDates.length + 8].textContent = pct;
+    }
+  });
+}    
+  document.getElementById('matrix-filter').addEventListener('input', renderMatrix);
     function exportMatrix() {
       const attendance = getAttendance();
       const allDates = Array.from(new Set(attendance.map(r => r.date))).sort((a,b) => b.localeCompare(a));
